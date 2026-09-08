@@ -1,0 +1,29 @@
+---
+layout: default
+---
+
+<article class="story">
+  <header class="story-header">
+    <h1>{{ page.title }}</h1>
+    <div class="story-meta">
+      <time>{{ page.date | date: "%d.%m.%Y" }}</time>
+      {% if page.author %}<span>von {{ page.author }}</span>{% endif %}
+      {% if page.age_group %}<span class="age-badge">{{ page.age_group }}</span>{% endif %}
+      {% if page.reading_time %}<span>📖 {{ page.reading_time }} Min</span>{% endif %}
+    </div>
+    {% if page.image %}<img src="{{ page.image }}" alt="{{ page.title }}" class="story-image">{% endif %}
+  </header>
+  <div class="story-content">
+    {{ content }}
+  </div>
+  {% if page.tags %}
+  <div class="story-tags">
+    {% for tag in page.tags %}<span class="story-tag">{{ tag }}</span>{% endfor %}
+  </div>
+  {% endif %}
+  <nav class="story-nav">
+    {% if page.previous %}<a href="{{ page.previous.url }}">← {{ page.previous.title }}</a>{% endif %}
+    <a href="/kindergeschichten/">📚 Alle Geschichten</a>
+    {% if page.next %}<a href="{{ page.next.url }}">{{ page.next.title }} →</a>{% endif %}
+  </nav>
+</article>

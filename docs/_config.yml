@@ -1,0 +1,53 @@
+title: "Annie's Animal Tales"
+description: "Erlebnisse, Pflege-Tipps und redaktionelle Alltagsberichte aus dem Tierleben"
+baseurl: ""
+url: "https://m-tarantino.github.io/annies-animal-tales"
+author: "Annie"
+language: de
+
+source: .
+destination: _site
+exclude:
+  - admin.html
+  - admin.js
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+
+markdown: kramdown
+kramdown:
+  input: GFM
+
+collections:
+  posts:
+    output: true
+    permalink: /:slug/
+  kindergeschichten:
+    output: true
+    permalink: /kindergeschichten/:slug/
+
+defaults:
+  - scope:
+      path: "_posts"
+    values:
+      layout: post
+      lang: de
+  - scope:
+      path: "_kindergeschichten"
+    values:
+      layout: story
+      lang: de
+
+paginate: 10
+paginate_path: "/archive/page:num/"
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+liquid:
+  error_mode: strict
+
+sass:
+  style: compressed

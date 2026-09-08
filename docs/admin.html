@@ -1,0 +1,115 @@
+---
+layout: null
+permalink: /admin.html
+---
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Annie's Animal Tales Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5ead9;
+      color: #333;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .admin-container { max-width: 900px; margin: 0 auto; }
+    .admin-header { text-align: center; margin-bottom: 40px; }
+    .admin-header h1 { color: #8a5a3b; font-size: 32px; margin-bottom: 8px; }
+    .auth-section { background: white; padding: 24px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .auth-form { display: flex; gap: 12px; flex-wrap: wrap; }
+    .auth-form input { flex: 1; min-width: 200px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+    .auth-form button { padding: 12px 24px; background: #8a5a3b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .auth-form button:hover { background: #5c3b26; }
+    .editor-section { display: none; }
+    .editor-section.active { display: block; }
+    .editor-form { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 24px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #8a5a3b; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; }
+    .form-group textarea { min-height: 300px; font-family: monospace; }
+    .form-submit { background: #8a5a3b; color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px; }
+    .form-submit:hover { background: #5c3b26; }
+    .tags-input { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; border: 1px solid #ddd; border-radius: 8px; min-height: 44px; }
+    .tag-badge { background: #8a5a3b; color: white; padding: 6px 12px; border-radius: 16px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .tag-badge button { background: none; border: none; color: white; cursor: pointer; font-weight: bold; padding: 0; }
+    .status-message { margin-top: 16px; padding: 12px; border-radius: 8px; display: none; }
+    .status-message.show { display: block; }
+    .status-message.success { background: #e8f5e9; color: #2e7d32; }
+    .status-message.error { background: #ffebee; color: #c62828; }
+    .status-message.loading { background: #e3f2fd; color: #1565c0; }
+    @media (max-width: 599px) {
+      .admin-header h1 { font-size: 22px; }
+      .auth-form { flex-direction: column; }
+      .auth-form input, .auth-form button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>🐾 Annie's Animal Tales Admin</h1>
+      <p>Schreib deine Beiträge — sie werden automatisch übersetzt und veröffentlicht.</p>
+    </div>
+
+    <div class="auth-section">
+      <h2 style="color: #8a5a3b; margin-bottom: 16px;">🔐 Authentifizierung</h2>
+      <div class="auth-form">
+        <input type="password" id="patInput" placeholder="GitHub Personal Access Token" autocomplete="off">
+        <button onclick="authenticateWithPAT()">Login</button>
+      </div>
+      <div id="authStatus" style="display: none; margin-top: 12px; padding: 12px; border-radius: 8px;"></div>
+    </div>
+
+    <div class="editor-section" id="editorSection">
+      <form class="editor-form" id="postForm" onsubmit="submitPost(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label for="title">Titel *</label>
+            <input type="text" id="title" required placeholder="z.B. Warum Katzen Kartons lieben">
+          </div>
+          <div class="form-group">
+            <label for="publishDate">Datum *</label>
+            <input type="date" id="publishDate" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Kurzbeschreibung *</label>
+          <textarea id="description" required placeholder="Kurze Zusammenfassung..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Bild (optional)</label>
+          <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 24px; text-align: center; cursor: pointer;" onclick="document.getElementById('imageInput').click()">
+            <div id="uploadPrompt">📸 Klick zum Bild hochladen</div>
+            <img id="imagePreview" style="display: none; max-height: 200px; border-radius: 8px;">
+            <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)" style="display: none;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="content">Inhalt *</label>
+          <textarea id="content" required placeholder="Schreib deinen Beitrag hier..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tags</label>
+          <div class="tags-input" id="tagsInput">
+            <input type="text" id="tagInput" placeholder="Tag eingeben..." onkeydown="handleTagInput(event)">
+          </div>
+        </div>
+
+        <button type="submit" class="form-submit">📤 Veröffentlichen</button>
+        <div id="submitStatus" class="status-message"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
