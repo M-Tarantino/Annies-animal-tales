@@ -1,0 +1,35 @@
+name: 🌍 Beitrag übersetzen (Groq)
+
+on:
+  push:
+    paths:
+      - 'docs/_posts/*.md'
+    branches:
+      - main
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Dependencies installieren
+        run: pip install requests pyyaml
+      
+      - name: Übersetzungsskript ausführen
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python scripts/translate.py
+      
+      - name: Übersetzte Dateien committen
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🌍 Automatische Übersetzung (DE→EN)"
+          file_pattern: 'docs/_posts/en/*.md'

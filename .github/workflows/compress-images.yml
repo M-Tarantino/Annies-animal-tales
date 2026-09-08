@@ -1,0 +1,29 @@
+name: 🖼️ Bilder komprimieren
+
+on:
+  push:
+    paths:
+      - 'docs/assets/images/**'
+    branches:
+      - main
+
+jobs:
+  compress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Bilder komprimieren
+        uses: calibreapp/image-actions@main
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          compressOnly: false
+          jpegQuality: '80'
+          pngQuality: '80'
+          webpQuality: '80'
+      
+      - name: Komprimierte Dateien committen
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🖼️ Automatische Bildoptimierung"
+          file_pattern: 'docs/assets/images/*'
