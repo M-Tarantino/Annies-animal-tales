@@ -8,8 +8,6 @@ language: de
 source: .
 destination: _site
 exclude:
-  - admin.html
-  - admin.js
   - README.md
   - Gemfile
   - Gemfile.lock
