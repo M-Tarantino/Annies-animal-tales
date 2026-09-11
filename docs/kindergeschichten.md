@@ -14,16 +14,16 @@ permalink: /kindergeschichten/
 <div class="stories-grid">
   {% for story in site.kindergeschichten %}
     <article class="story-card">
-      {% if story.image %}<div class="story-card-image"><img src="{{ story.image }}" alt="{{ story.title }}" loading="lazy"></div>{% endif %}
+      {% if story.image %}<div class="story-card-image"><img src="{{ site.baseurl }}{{ story.image }}" alt="{{ story.title }}" loading="lazy"></div>{% endif %}
       <div class="story-card-content">
-        <h2><a href="{{ story.url }}">{{ story.title }}</a></h2>
+        <h2><a href="{{ site.baseurl }}{{ story.url }}">{{ story.title }}</a></h2>
         <div class="story-card-meta">
           <time>{{ story.date | date: "%d.%m.%Y" }}</time>
           {% if story.age_group %}<span class="age-badge">{{ story.age_group }}</span>{% endif %}
           {% if story.reading_time %}<span>📖 {{ story.reading_time }} min</span>{% endif %}
         </div>
         <p>{{ story.description }}</p>
-        <a href="{{ story.url }}" class="story-link">Zur Geschichte →</a>
+        <a href="{{ site.baseurl }}{{ story.url }}" class="story-link">Zur Geschichte →</a>
       </div>
     </article>
   {% endfor %}
