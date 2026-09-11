@@ -1,0 +1,26 @@
+---
+layout: default
+title: Startseite
+---
+
+<section class="home-hero">
+  <h1>🐾 Willkommen bei Annie's Animal Tales</h1>
+  <p class="hero-subtitle">Erlebnisse, Pflege-Tipps und redaktionelle Alltagsberichte aus dem Tierleben.</p>
+</section>
+
+<section class="home-latest">
+  <h2>Aktuelle Beiträge</h2>
+  {% if site.posts.size > 0 %}
+    {% for post in site.posts limit:3 %}
+      <article class="post-preview">
+        {% if post.image %}<img src="{{ site.baseurl }}{{ post.image }}" alt="{{ post.title }}">{% endif %}
+        <div class="post-preview-content">
+          <h2><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h2>
+          <p>{{ post.description }}</p>
+          <time>{{ post.date | date: "%d. %B %Y" }}</time>
+        </div>
+      </article>
+    {% endfor %}
+    <div class="home-cta"><a href="{{ site.baseurl }}/archive/" class="btn">Alle Beiträge →</a></div>
+  {% endif %}
+</section>
