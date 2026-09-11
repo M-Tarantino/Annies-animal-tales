@@ -11,7 +11,7 @@ layout: default
       {% if page.age_group %}<span class="age-badge">{{ page.age_group }}</span>{% endif %}
       {% if page.reading_time %}<span>📖 {{ page.reading_time }} Min</span>{% endif %}
     </div>
-    {% if page.image %}<img src="{{ page.image }}" alt="{{ page.title }}" class="story-image">{% endif %}
+    {% if page.image %}<img src="{{ page.image | relative_url }}" alt="{{ page.title }}" class="story-image">{% endif %}
   </header>
   <div class="story-content">
     {{ content }}
@@ -22,9 +22,8 @@ layout: default
   </div>
   {% endif %}
   <nav class="story-nav">
-    {% if page.previous %}<a href="{{ page.previous.url }}">← {{ page.previous.title }}</a>{% endif %}
+    {% if page.previous %}<a href="{{ page.previous.url | relative_url }}">← {{ page.previous.title }}</a>{% else %}<span></span>{% endif %}
     <a href="{{ '/kindergeschichten/' | relative_url }}">📚 Alle Geschichten</a>
-📚 Alle Geschichten</a>
-    {% if page.next %}<a href="{{ page.next.url }}">{{ page.next.title }} →</a>{% endif %}
+    {% if page.next %}<a href="{{ page.next.url | relative_url }}">{{ page.next.title }} →</a>{% else %}<span></span>{% endif %}
   </nav>
 </article>
