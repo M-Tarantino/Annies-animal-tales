@@ -23,7 +23,8 @@ layout: default
   {% endif %}
   <nav class="story-nav">
     {% if page.previous %}<a href="{{ page.previous.url }}">← {{ page.previous.title }}</a>{% endif %}
-    <a href="/kindergeschichten/">📚 Alle Geschichten</a>
+    <a href="{{ '/kindergeschichten/' | relative_url }}">📚 Alle Geschichten</a>
+📚 Alle Geschichten</a>
     {% if page.next %}<a href="{{ page.next.url }}">{{ page.next.title }} →</a>{% endif %}
   </nav>
 </article>
