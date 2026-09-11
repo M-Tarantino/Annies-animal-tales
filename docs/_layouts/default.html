@@ -5,19 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page.title | default: site.title }}</title>
   <meta name="description" content="{{ page.description | default: site.description }}">
-  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
   <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🐾</text></svg>">
 </head>
 <body>
   <header class="header">
     <nav class="navbar">
       <div class="nav-container">
-        <a href="/" class="nav-logo">🐾 {{ site.title }}</a>
+        <a href="{{ '/' | relative_url }}" class="nav-logo">🐾 {{ site.title }}</a>
         <ul class="nav-menu">
-          <li><a href="/">Startseite</a></li>
-          <li><a href="/archive/">Blog</a></li>
-          <li><a href="/kindergeschichten/">Kindergeschichten</a></li>
-          <li><a href="/impressum/">Impressum</a></li>
+          <li><a href="{{ '/' | relative_url }}">Startseite</a></li>
+          <li><a href="{{ '/archive/' | relative_url }}">Blog</a></li>
+          <li><a href="{{ '/kindergeschichten/' | relative_url }}">Kindergeschichten</a></li>
+          <li><a href="{{ '/impressum/' | relative_url }}">Impressum</a></li>
         </ul>
       </div>
     </nav>
@@ -31,8 +31,8 @@
     <div class="footer-content">
       <p>&copy; 2026 {{ site.title }}. Alle Rechte vorbehalten.</p>
       <div class="footer-links">
-        <a href="/impressum/">Impressum</a>
-        <a href="/datenschutz/">Datenschutzerklärung</a>
+        <a href="{{ '/impressum/' | relative_url }}">Impressum</a>
+        <a href="{{ '/datenschutz/' | relative_url }}">Datenschutzerklärung</a>
       </div>
     </div>
   </footer>
