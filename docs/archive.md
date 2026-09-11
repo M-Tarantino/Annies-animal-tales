@@ -9,7 +9,7 @@ title: Blog Archiv
 <div class="archive-list">
   {% for post in site.posts %}
     <div class="archive-item">
-      <a href="{{ post.url }}">{{ post.title }}</a>
+      <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>
       <time class="archive-date">{{ post.date | date: "%d.%m.%Y" }}</time>
     </div>
   {% endfor %}
