@@ -1,4 +1,5 @@
 ---
+layout: story
 title: "Luna die kleine Mondkatze"
 date: 2026-09-08
 author: "Annie"
@@ -7,6 +8,7 @@ image: "/assets/images/luna.jpg"
 tags: ["Katzen", "Magie", "Abenteuer"]
 age_group: "3-6 Jahre"
 reading_time: 5
+permalink: /kindergeschichten/luna-mondkatze/
 ---
 
 # 🌙 Luna die kleine Mondkatze
