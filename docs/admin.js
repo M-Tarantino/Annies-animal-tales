@@ -1,205 +1,201 @@
+// docs/admin.js
 const CONFIG = {
   owner: "M-Tarantino",
   repo: "Annies-Animal-Tales",
   branch: "main"
 };
 
-let appState = { isAuthenticated: false, token: null, tags: [], selectedImage: null, selectedImagePath: null };
+let authToken = null;
 
 function authenticateWithPAT() {
-  const patInput = document.getElementById("patInput");
-  const token = patInput.value.trim();
-  const authStatus = document.getElementById("authStatus");
-  if (!token) { showAuthStatus("Bitte gib einen Token ein.", "error"); return; }
-  sessionStorage.setItem("github_pat", token);
-  appState.token = token;
-  appState.isAuthenticated = true;
-  document.getElementById("editorSection").classList.add("active");
-  document.getElementById("patInput").disabled = true;
-  showAuthStatus("✅ Authentifizierung erfolgreich!", "success");
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("publishDate").value = today;
+  const pat = document.getElementById("patInput").value.trim();
+  if (!pat) {
+    showAuthStatus("Bitte Token eintragen", "error");
+    return;
+  }
+  authToken = pat;
+  testAuth();
 }
 
-function showAuthStatus(message, type) {
+function testAuth() {
+  const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}`;
+  fetch(url, {
+    headers: { "Authorization": `Bearer ${authToken}`, "Accept": "application/vnd.github.v3+json" }
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.id) {
+        showAuthStatus("✓ Authentifiziert", "success");
+        document.getElementById("editorSection").classList.add("active");
+        document.getElementById("patInput").disabled = true;
+        document.querySelector(".auth-form button").disabled = true;
+        initializePublishDate();
+      } else {
+        showAuthStatus("Ungültiger Token", "error");
+        authToken = null;
+      }
+    })
+    .catch(() => {
+      showAuthStatus("Netzwerkfehler", "error");
+      authToken = null;
+    });
+}
+
+function showAuthStatus(msg, type) {
   const el = document.getElementById("authStatus");
-  el.textContent = message;
-  el.className = `${type}`;
+  el.textContent = msg;
+  el.className = type;
   el.style.display = "block";
 }
 
-function handleImageSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const validMimes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-  if (!validMimes.includes(file.type)) { showSubmitStatus("Nur JPEG, PNG, WebP und GIF sind erlaubt.", "error"); return; }
-  if (file.size > 5 * 1024 * 1024) { showSubmitStatus("Datei ist zu groß (max. 5 MB).", "error"); return; }
-  resizeImage(file, 2000).then((resizedBlob) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      document.getElementById("uploadPrompt").style.display = "none";
-      const preview = document.getElementById("imagePreview");
-      preview.src = e.target.result;
-      preview.style.display = "block";
-    };
-    reader.readAsDataURL(resizedBlob);
-    appState.selectedImage = resizedBlob;
-    appState.selectedImagePath = `docs/assets/images/${Date.now()}-${sanitizeFilename(file.name)}`;
-  });
+function initializePublishDate() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  document.getElementById("publishDate").value = `${yyyy}-${mm}-${dd}`;
 }
 
-async function resizeImage(file, maxDimension = 2000) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(resolve, "image/jpeg", 0.85);
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function handleTagInput(event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    const input = event.target;
-    const tag = input.value.trim();
-    if (tag && !appState.tags.includes(tag)) {
-      appState.tags.push(tag);
-      renderTags();
-      input.value = "";
-    }
+function updatePostType() {
+  const type = document.getElementById("postType").value;
+  if (type === "story") {
+    document.getElementById("description").placeholder = "Kurze Geschichte-Zusammenfassung...";
+  } else if (type === "blog") {
+    document.getElementById("description").placeholder = "Blog-Vorschau...";
   }
 }
 
-function removeTag(index) {
-  appState.tags.splice(index, 1);
-  renderTags();
+function formatText(cmd) {
+  const textarea = document.getElementById("content");
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selected = textarea.value.substring(start, end) || "Text";
+  const before = textarea.value.substring(0, start);
+  const after = textarea.value.substring(end);
+
+  let formatted = selected;
+  switch (cmd) {
+    case "bold":
+      formatted = `**${selected}**`;
+      break;
+    case "italic":
+      formatted = `*${selected}*`;
+      break;
+    case "underline":
+      formatted = `__${selected}__`;
+      break;
+    case "heading1":
+      formatted = `\n# ${selected}\n`;
+      break;
+    case "heading2":
+      formatted = `\n## ${selected}\n`;
+      break;
+    case "unorderedList":
+      formatted = `\n- ${selected}\n`;
+      break;
+  }
+
+  textarea.value = before + formatted + after;
+  textarea.focus();
+  textarea.selectionStart = start + formatted.length;
 }
 
-function renderTags() {
-  const container = document.getElementById("tagsInput");
-  const tagInput = container.querySelector("input");
-  container.querySelectorAll(".tag-badge").forEach(el => el.remove());
-  appState.tags.forEach((tag, idx) => {
-    const badge = document.createElement("div");
-    badge.className = "tag-badge";
-    badge.innerHTML = `${tag}<button type="button" onclick="removeTag(${idx})">×</button>`;
-    container.insertBefore(badge, tagInput);
-  });
+function insertLink() {
+  const url = prompt("Link-URL eingeben:");
+  if (!url) return;
+  const text = prompt("Link-Text eingeben:", "Hier klicken") || "Hier klicken";
+  const textarea = document.getElementById("content");
+  const start = textarea.selectionStart;
+  const before = textarea.value.substring(0, start);
+  const after = textarea.value.substring(start);
+  textarea.value = before + `[${text}](${url})` + after;
+  textarea.focus();
 }
 
-async function submitPost(event) {
+function clearText() {
+  if (confirm("Wirklich alles löschen?")) {
+    document.getElementById("content").value = "";
+  }
+}
+
+function submitPost(event) {
   event.preventDefault();
-  if (!appState.isAuthenticated || !appState.token) { showSubmitStatus("❌ Nicht authentifiziert.", "error"); return; }
-  const submitBtn = document.querySelector(".form-submit");
-  submitBtn.disabled = true;
-  showSubmitStatus("📤 Veröffentliche Beitrag...", "loading");
-  try {
-    const title = document.getElementById("title").value;
-    const description = document.getElementById("description").value;
-    const content = document.getElementById("content").value;
-    const publishDate = document.getElementById("publishDate").value;
-    const tags = appState.tags;
-    const slug = sanitizeFilename(title.toLowerCase().replace(/\s+/g, "-"));
-    const filename = `${publishDate}-${slug}.md`;
-    let imagePath = appState.selectedImagePath || "";
-    if (appState.selectedImage) {
-      showSubmitStatus("📸 Lade Bild hoch...", "loading");
-      await uploadFile(appState.selectedImagePath, appState.selectedImage, `Bild-Upload: ${title}`);
-      imagePath = "/" + appState.selectedImagePath.replace("docs/", "");
-    }
-    const frontmatter = {
-      title,
-      date: publishDate,
-      author: "Annie",
-      description,
-      ...(imagePath && { image: imagePath }),
-      tags
-    };
-    const markdown = `---\n${Object.entries(frontmatter).map(([key, val]) => {
-      if (key === "tags" && Array.isArray(val)) return `${key}: ${JSON.stringify(val)}`;
-      return `${key}: "${val}"`;
-    }).join("\n")}\n---\n\n${content}`;
-    showSubmitStatus("✍️ Speichere Beitrag...", "loading");
-    await uploadFile(`docs/_posts/${filename}`, new Blob([markdown], { type: "text/plain" }), `Neuer Beitrag: ${title}`);
-    showSubmitStatus("✅ Beitrag veröffentlicht! Übersetzung folgt in wenigen Minuten.", "success");
-    document.getElementById("postForm").reset();
-    appState.tags = [];
-    appState.selectedImage = null;
-    appState.selectedImagePath = null;
-    document.getElementById("uploadPrompt").style.display = "block";
-    document.getElementById("imagePreview").style.display = "none";
-    renderTags();
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("publishDate").value = today;
-  } catch (error) {
-    showSubmitStatus(`❌ Fehler: ${error.message}`, "error");
-    console.error("Submission error:", error);
-  } finally {
-    submitBtn.disabled = false;
+
+  if (!authToken) {
+    showSubmitStatus("Nicht authentifiziert", "error");
+    return;
   }
-}
 
-async function uploadFile(path, content, message) {
-  const base64Content = await blobToBase64(content);
-  const response = await fetch(
-    `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${appState.token}`,
-        Accept: "application/vnd.github+json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message,
-        content: base64Content,
-        branch: CONFIG.branch
-      })
-    }
-  );
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || `GitHub API Error: ${response.status}`);
+  const postType = document.getElementById("postType").value;
+  if (!postType) {
+    showSubmitStatus("Bitte Beitragstyp wählen", "error");
+    return;
   }
-  return response.json();
+
+  const title = document.getElementById("title").value.trim();
+  const publishDate = document.getElementById("publishDate").value;
+  const description = document.getElementById("description").value.trim();
+  const imagePath = document.getElementById("image").value.trim();
+  const content = document.getElementById("content").value.trim();
+  const tags = document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean);
+
+  if (!title || !publishDate || !description || !content) {
+    showSubmitStatus("Alle Pflichtfelder ausfüllen", "error");
+    return;
+  }
+
+  showSubmitStatus("Wird veröffentlicht...", "loading");
+
+  const frontmatter = {
+    title,
+    date: publishDate,
+    author: "Annie",
+    description,
+    ...(imagePath && { image: imagePath }),
+    tags,
+    lang: "de"
+  };
+
+  const markdown = `---\n${Object.entries(frontmatter).map(([key, val]) => {
+    if (Array.isArray(val)) return `${key}: [${val.map(v => `"${v}"`).join(", ")}]`;
+    if (typeof val === "string") return `${key}: "${val}"`;
+    return `${key}: ${val}`;
+  }).join("\n")}\n---\n\n${content}`;
+
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const filename = `${publishDate}-${slug}.md`;
+  const folder = postType === "blog" ? "_posts" : "_kindergeschichten";
+  const path = `docs/${folder}/${filename}`;
+
+  commitFile(path, markdown)
+    .then(() => showSubmitStatus("✓ Veröffentlicht!", "success"))
+    .catch(err => showSubmitStatus(`Fehler: ${err}`, "error"));
 }
 
-function sanitizeFilename(name) {
-  return name.toLowerCase().replace(/[^a-z0-9äöüß]+/g, "-").replace(/^-|-$/g, "");
-}
+function commitFile(path, content) {
+  const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`;
+  const encodedContent = btoa(unescape(encodeURIComponent(content)));
 
-async function blobToBase64(blob) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result.split(",")[1];
-      resolve(base64);
-    };
-    reader.readAsDataURL(blob);
+  return fetch(url, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${authToken}`,
+      "Accept": "application/vnd.github.v3+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: `Neue Veröffentlichung: ${path.split("/").pop()}`,
+      content: encodedContent,
+      branch: CONFIG.branch
+    })
+  }).then(r => {
+    if (!r.ok) throw new Error(`GitHub API: ${r.status}`);
+    return r.json();
   });
 }
 
-function showSubmitStatus(message, type) {
+function showSubmitStatus(msg, type) {
   const el = document.getElementById("submitStatus");
-  el.textContent = message;
+  el.textContent = msg;
   el.className = `status-message show ${type}`;
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  const savedToken = sessionStorage.getItem("github_pat");
-  if (savedToken) {
-    document.getElementById("patInput").value = savedToken;
-    authenticateWithPAT();
-  }
-});
