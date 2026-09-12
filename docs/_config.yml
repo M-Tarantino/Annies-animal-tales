@@ -11,6 +11,7 @@ exclude:
   - README.md
   - Gemfile
   - Gemfile.lock
+  - _posts/en
 
 markdown: kramdown
 kramdown:
@@ -35,9 +36,6 @@ defaults:
     values:
       layout: story
       lang: de
-
-paginate: 10
-paginate_path: "/archive/page:num/"
 
 plugins:
   - jekyll-feed
