@@ -8,6 +8,12 @@
   <meta name="description" content="{{ page.description | default: site.description }}">
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
   <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🐾</text></svg>">
+  <style>
+    .lang-switcher { display: flex; gap: 8px; align-items: center; }
+    .lang-btn { padding: 6px 12px; background: none; border: 1px solid #8a5a3b; border-radius: 6px; cursor: pointer; font-weight: 600; color: #8a5a3b; transition: all 0.3s; }
+    .lang-btn:hover { background: #8a5a3b; color: white; }
+    .lang-btn.active { background: #8a5a3b; color: white; }
+  </style>
 </head>
 <body>
   <header class="header">
@@ -19,6 +25,10 @@
           <li><a href="{{ '/archive/' | relative_url }}">Blog</a></li>
           <li><a href="{{ '/kindergeschichten/' | relative_url }}">Kindergeschichten</a></li>
         </ul>
+        <div class="lang-switcher">
+          <button class="lang-btn active" onclick="switchLanguage('de')">🇩🇪 DE</button>
+          <button class="lang-btn" onclick="switchLanguage('en')">🇬🇧 EN</button>
+        </div>
       </div>
     </nav>
   </header>
@@ -37,5 +47,43 @@
       </div>
     </div>
   </footer>
+
+  <script>
+function switchLanguage(lang) {
+  // Sprache in localStorage speichern
+  localStorage.setItem('blog-lang', lang);
+  
+  // Button Status aktualisieren
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  // Reload oder Umleitung
+  const currentUrl = window.location.pathname;
+  
+  if (lang === 'en') {
+    // Wenn DE-Post, EN-Version anzeigen
+    if (currentUrl.includes('/blog/') || currentUrl.includes('/kindergeschichten/')) {
+      // Umleitung zur EN-Version
+      const enUrl = currentUrl.replace(/^\//, '/en/');
+      window.location.href = enUrl;
+    }
+  } else {
+    // Zurück zur DE-Version
+    if (currentUrl.includes('/en/')) {
+      const deUrl = currentUrl.replace('/en/', '/');
+      window.location.href = deUrl;
+    }
+  }
+}
+
+// Sprache beim Laden laden
+window.addEventListener('DOMContentLoaded', () => {
+  const savedLang = localStorage.getItem('blog-lang') || 'de';
+  const buttons = document.querySelectorAll('.lang-btn');
+  buttons.forEach((btn, idx) => {
+    btn.classList.toggle('active', (idx === 0 && savedLang === 'de') || (idx === 1 && savedLang === 'en'));
+  });
+});
+  </script>
 </body>
 </html>
