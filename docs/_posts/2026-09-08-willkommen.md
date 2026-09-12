@@ -3,7 +3,6 @@ title: "Willkommen bei Annie's Animal Tales! 🐾"
 date: 2026-09-08
 author: "Annie"
 description: "Der Blog für Tier-Erlebnisse, Pflege-Tipps und redaktionelle Alltagsberichte aus unserem Tierleben."
-image: "/assets/images/welcome.jpg"
 tags: ["Willkommen", "Haustiere", "Blog"]
 ---
 
