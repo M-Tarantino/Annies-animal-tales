@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Datenschutzerklärung
+permalink: /datenschutz/
 ---
 
 # 🔒 Datenschutzerklärung
