@@ -1,29 +1,34 @@
-name: 🖼️ Bilder komprimieren
+# .github/workflows/compress-images.yml
+name: Compress Images
 
 on:
-  push:
+  pull_request:
     paths:
       - 'docs/assets/images/**'
-    branches:
-      - main
 
 jobs:
   compress:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Bilder komprimieren
-        uses: calibreapp/image-actions@main
         with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - uses: calibreapp/image-actions@main
+        with:
           compressOnly: false
-          jpegQuality: '80'
-          pngQuality: '80'
-          webpQuality: '80'
-      
-      - name: Komprimierte Dateien committen
-        uses: stefanzweifel/git-auto-commit-action@v5
+          jpegQuality: 80
+          pngQuality: 80
+          webpQuality: 80
+          avifQuality: 75
+          ignorePaths: node_modules/**
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "🖼️ Automatische Bildoptimierung"
-          file_pattern: 'docs/assets/images/*'
+          commit_message: "🖼️ Bilder komprimiert"
+          file_pattern: docs/assets/images/**
