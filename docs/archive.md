@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Blog Archiv
+permalink: /archive/
 ---
 
 # 📚 Blog Archiv
