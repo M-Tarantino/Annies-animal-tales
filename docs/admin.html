@@ -37,12 +37,26 @@ permalink: /admin.html
     .status-message.error { background: #ffebee; color: #c62828; }
     .status-message.loading { background: #e3f2fd; color: #1565c0; }
     .type-select { max-width: 300px; }
+    .upload-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+    .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
+    .file-input-wrapper input[type=file] { position: absolute; left: -9999px; }
+    .file-input-label { display: block; padding: 12px; background: white; border: 2px dashed #8a5a3b; border-radius: 8px; text-align: center; cursor: pointer; color: #8a5a3b; font-weight: 600; transition: all 0.3s; }
+    .file-input-label:hover { background: #f5ead9; }
+    .file-input-wrapper.drag-over .file-input-label { background: #8a5a3b; color: white; }
+    .image-preview { max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #8a5a3b; display: none; }
+    .image-preview.show { display: block; }
+    .upload-status { font-size: 12px; margin-top: 8px; padding: 8px; border-radius: 6px; display: none; }
+    .upload-status.show { display: block; }
+    .upload-status.success { background: #e8f5e9; color: #2e7d32; }
+    .upload-status.error { background: #ffebee; color: #c62828; }
+    .upload-status.loading { background: #e3f2fd; color: #1565c0; }
     @media (max-width: 599px) {
       .admin-header h1 { font-size: 22px; }
       .auth-form { flex-direction: column; }
       .auth-form input, .auth-form button { width: 100%; }
       .editor-toolbar { gap: 4px; }
       .toolbar-btn { padding: 6px 8px; font-size: 12px; }
+      .upload-section { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -90,8 +104,19 @@ permalink: /admin.html
         </div>
 
         <div class="form-group">
-          <label for="image">Vorschaubild (optional)</label>
-          <input type="text" id="image" placeholder="/assets/images/beispiel.jpg">
+          <label>Vorschaubild</label>
+          <div class="upload-section">
+            <div class="file-input-wrapper" id="uploadWrapper">
+              <input type="file" id="imageFile" accept="image/*" onchange="handleFileSelect(event)">
+              <label class="file-input-label" for="imageFile">📁 Bild auswählen</label>
+            </div>
+            <div>
+              <img id="imagePreview" class="image-preview" alt="Vorschau">
+              <div id="uploadStatus" class="upload-status"></div>
+            </div>
+          </div>
+          <input type="hidden" id="image" placeholder="/assets/images/beispiel.jpg">
+          <small style="display: block; margin-top: 8px; color: #666;">Oder direkt Pfad eingeben: /assets/images/beispiel.jpg</small>
         </div>
 
         <div class="form-group">
@@ -190,6 +215,70 @@ function updatePostType() {
   } else if (type === "blog") {
     document.getElementById("description").placeholder = "Blog-Vorschau...";
   }
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!authToken) {
+    showUploadStatus("Bitte erst authentifizieren", "error");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById("imagePreview");
+    preview.src = e.target.result;
+    preview.classList.add("show");
+  };
+  reader.readAsDataURL(file);
+
+  showUploadStatus("Wird hochgeladen...", "loading");
+  uploadFile(file);
+}
+
+function uploadFile(file) {
+  const filename = file.name.toLowerCase().replace(/[^a-z0-9.-]/g, "-");
+  const path = `docs/assets/images/${filename}`;
+  const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const base64 = e.target.result.split(",")[1];
+    
+    fetch(url, {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${authToken}`,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Bild hochgeladen: ${filename}`,
+        content: base64,
+        branch: CONFIG.branch
+      })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.content) {
+          const imagePath = `/assets/images/${filename}`;
+          document.getElementById("image").value = imagePath;
+          showUploadStatus("✓ Hochgeladen: " + filename, "success");
+        } else {
+          showUploadStatus("Fehler: " + (data.message || "Upload fehlgeschlagen"), "error");
+        }
+      })
+      .catch(e => showUploadStatus("Fehler: " + e.message, "error"));
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showUploadStatus(msg, type) {
+  const el = document.getElementById("uploadStatus");
+  el.textContent = msg;
+  el.className = `upload-status show ${type}`;
 }
 
 function formatText(cmd) {
@@ -295,7 +384,11 @@ function submitPost(event) {
   const path = `docs/${folder}/${filename}`;
 
   commitFile(path, markdown)
-    .then(() => showSubmitStatus("✓ Veröffentlicht!", "success"))
+    .then(() => {
+      showSubmitStatus("✓ Veröffentlicht!", "success");
+      document.getElementById("postForm").reset();
+      document.getElementById("imagePreview").classList.remove("show");
+    })
     .catch(err => showSubmitStatus(`Fehler: ${err}`, "error"));
 }
 
