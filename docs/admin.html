@@ -1,3 +1,4 @@
+<!-- docs/admin.html -->
 ---
 layout: null
 permalink: /admin.html
@@ -10,13 +11,7 @@ permalink: /admin.html
   <title>Annie's Animal Tales Admin</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f5ead9;
-      color: #333;
-      min-height: 100vh;
-      padding: 20px;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5ead9; color: #333; min-height: 100vh; padding: 20px; }
     .admin-container { max-width: 900px; margin: 0 auto; }
     .admin-header { text-align: center; margin-bottom: 40px; }
     .admin-header h1 { color: #8a5a3b; font-size: 32px; margin-bottom: 8px; }
@@ -31,21 +26,24 @@ permalink: /admin.html
     .form-group { margin-bottom: 24px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #8a5a3b; }
     .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; }
-    .form-group textarea { min-height: 300px; font-family: monospace; }
-    .form-submit { background: #8a5a3b; color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px; }
+    .form-group textarea { min-height: 300px; font-family: "Georgia", serif; }
+    .editor-toolbar { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px 8px 0 0; padding: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .toolbar-btn { padding: 8px 12px; background: white; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-weight: 500; color: #333; }
+    .toolbar-btn:hover { background: #8a5a3b; color: white; border-color: #8a5a3b; }
+    .toolbar-sep { width: 1px; background: #ddd; }
+    .form-submit { background: #8a5a3b; color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px; width: 100%; }
     .form-submit:hover { background: #5c3b26; }
-    .tags-input { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; border: 1px solid #ddd; border-radius: 8px; min-height: 44px; }
-    .tag-badge { background: #8a5a3b; color: white; padding: 6px 12px; border-radius: 16px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
-    .tag-badge button { background: none; border: none; color: white; cursor: pointer; font-weight: bold; padding: 0; }
     .status-message { margin-top: 16px; padding: 12px; border-radius: 8px; display: none; }
     .status-message.show { display: block; }
     .status-message.success { background: #e8f5e9; color: #2e7d32; }
     .status-message.error { background: #ffebee; color: #c62828; }
-    .status-message.loading { background: #e3f2fd; color: #1565c0; }
+    .type-select { max-width: 300px; }
     @media (max-width: 599px) {
       .admin-header h1 { font-size: 22px; }
       .auth-form { flex-direction: column; }
       .auth-form input, .auth-form button { width: 100%; }
+      .editor-toolbar { gap: 4px; }
+      .toolbar-btn { padding: 6px 8px; font-size: 12px; }
     }
   </style>
 </head>
@@ -53,7 +51,7 @@ permalink: /admin.html
   <div class="admin-container">
     <div class="admin-header">
       <h1>🐾 Annie's Animal Tales Admin</h1>
-      <p>Schreib deine Beiträge — sie werden automatisch übersetzt und veröffentlicht.</p>
+      <p>Schreib deine Beiträge — sie werden automatisch veröffentlicht.</p>
     </div>
 
     <div class="auth-section">
@@ -67,6 +65,15 @@ permalink: /admin.html
 
     <div class="editor-section" id="editorSection">
       <form class="editor-form" id="postForm" onsubmit="submitPost(event)">
+        <div class="form-group type-select">
+          <label for="postType">Beitragstyp *</label>
+          <select id="postType" required onchange="updatePostType()">
+            <option value="">-- Wähle einen Typ --</option>
+            <option value="blog">📝 Blogpost</option>
+            <option value="story">📖 Kindergeschichte</option>
+          </select>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="form-group">
             <label for="title">Titel *</label>
@@ -79,29 +86,35 @@ permalink: /admin.html
         </div>
 
         <div class="form-group">
-          <label for="description">Kurzbeschreibung *</label>
-          <textarea id="description" required placeholder="Kurze Zusammenfassung..."></textarea>
+          <label for="description">Beschreibung / Vorschau *</label>
+          <input type="text" id="description" required placeholder="Kurzer Text für die Vorschau">
         </div>
 
         <div class="form-group">
-          <label>Bild (optional)</label>
-          <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 24px; text-align: center; cursor: pointer;" onclick="document.getElementById('imageInput').click()">
-            <div id="uploadPrompt">📸 Klick zum Bild hochladen</div>
-            <img id="imagePreview" style="display: none; max-height: 200px; border-radius: 8px;">
-            <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)" style="display: none;">
-          </div>
+          <label for="image">Vorschaubild (optional)</label>
+          <input type="text" id="image" placeholder="/assets/images/beispiel.jpg">
         </div>
 
         <div class="form-group">
           <label for="content">Inhalt *</label>
-          <textarea id="content" required placeholder="Schreib deinen Beitrag hier..."></textarea>
+          <div class="editor-toolbar">
+            <button type="button" class="toolbar-btn" title="Fett" onclick="formatText('bold')"><b>B</b></button>
+            <button type="button" class="toolbar-btn" title="Kursiv" onclick="formatText('italic')"><i>I</i></button>
+            <button type="button" class="toolbar-btn" title="Unterstrichen" onclick="formatText('underline')" style="text-decoration: underline;">U</button>
+            <div class="toolbar-sep"></div>
+            <button type="button" class="toolbar-btn" title="Überschrift 1" onclick="formatText('heading1')">H1</button>
+            <button type="button" class="toolbar-btn" title="Überschrift 2" onclick="formatText('heading2')">H2</button>
+            <div class="toolbar-sep"></div>
+            <button type="button" class="toolbar-btn" title="Link" onclick="insertLink()">🔗</button>
+            <button type="button" class="toolbar-btn" title="Liste" onclick="formatText('unorderedList')">• Liste</button>
+            <button type="button" class="toolbar-btn" title="Löschen" onclick="clearText()" style="color: #c62828;">✕ Löschen</button>
+          </div>
+          <textarea id="content" required placeholder="Schreibe hier deinen Beitrag..."></textarea>
         </div>
 
         <div class="form-group">
-          <label>Tags</label>
-          <div class="tags-input" id="tagsInput">
-            <input type="text" id="tagInput" placeholder="Tag eingeben..." onkeydown="handleTagInput(event)">
-          </div>
+          <label for="tags">Tags (komma-getrennt)</label>
+          <input type="text" id="tags" placeholder="z.B. Hunde, Pflege, Erlebnisse">
         </div>
 
         <button type="submit" class="form-submit">📤 Veröffentlichen</button>
@@ -110,6 +123,6 @@ permalink: /admin.html
     </div>
   </div>
 
-  <script src="admin.js"></script>
+  <script src="{{ '/admin.js' | relative_url }}"></script>
 </body>
 </html>
