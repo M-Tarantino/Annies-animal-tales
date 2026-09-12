@@ -1,6 +1,6 @@
 const CONFIG = {
   owner: "M-Tarantino",
-  repo: "annies-animal-tales",
+  repo: "Annies-Animal-Tales",
   branch: "main"
 };
 
@@ -123,7 +123,7 @@ async function submitPost(event) {
       date: publishDate,
       author: "Annie",
       description,
-      image: imagePath,
+      ...(imagePath && { image: imagePath }),
       tags
     };
     const markdown = `---\n${Object.entries(frontmatter).map(([key, val]) => {
