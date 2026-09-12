@@ -9,7 +9,7 @@ layout: default
       <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%d. %B %Y" }}</time>
       {% if page.author %}<span class="post-author">von {{ page.author }}</span>{% endif %}
     </div>
-    {% if page.image %}<img src="{{ page.image }}" alt="{{ page.title }}" class="post-image">{% endif %}
+    {% if page.image %}<img src="{{ page.image | relative_url }}" alt="{{ page.title }}" class="post-image">{% endif %}
   </header>
   <div class="post-content">
     {{ content }}
